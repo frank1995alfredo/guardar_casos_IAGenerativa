@@ -1,5 +1,5 @@
 from sqlalchemy import create_engine, Column, Integer, String, Boolean, ForeignKey, Text
-from sqlalchemy.orm import sessionmaker, Session, declarative_base
+from sqlalchemy.orm import sessionmaker, Session, declarative_base, relationship
 from typing import List, Optional
 from domain.entities import TipoCaso as TipoCasoEnt, Tecnico as TecnicoEnt, Caso as CasoEnt
 from domain.repositories import TipoCasoRepo, TecnicoRepo, CasoRepo
@@ -25,6 +25,9 @@ class CasoORM(Base):
     descripcion = Column(Text)
     tipo_caso_id = Column(Integer, ForeignKey("ejemplo.tipo_caso.id"))
     desarrollador_id = Column(Integer, ForeignKey("ejemplo.desarrollador.id"))
+    
+    tipo_caso     = relationship("TipoCasoORM", backref="casos")
+    desarrollador = relationship("TecnicoORM", backref="casos")
 
 class PostgresTipoCasoRepo(TipoCasoRepo):
     def __init__(self, session: Session):
@@ -57,3 +60,20 @@ class PostgresCasoRepo(CasoRepo):
         self.session.flush()
         self.session.commit()
         return orm_caso.id
+    
+    
+    def buscar_por_id(self, id_caso: int) -> CasoEnt:
+        row = (
+            self.session.query(CasoORM)
+            .join(TipoCasoORM)
+            .join(TecnicoORM)
+            .filter(CasoORM.id == id_caso)
+            .first()
+        )
+        if not row:
+            raise ValueError("Caso no encontrado")
+        return CasoEnt(
+            descripcion=row.descripcion,
+            tipo=TipoCasoEnt(id=row.tipo_caso_id, nombre=row.tipo_caso.nombre),
+            tecnico=TecnicoEnt(id=row.desarrollador_id, nombre=row.desarrollador.nombre, area=row.desarrollador.area)
+        )
