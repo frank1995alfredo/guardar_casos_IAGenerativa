@@ -9,7 +9,7 @@ from adapters.driven.repositorio_postgres import (
 from adapters.driven.clasificador_ollama import OllamaClasificador, OllamaTecnicoSelector
 from adapters.driving.controller import CLIController
 
-ENGINE_URL = "postgresql+psycopg2://postgres:4!oroDEV24@10.252.1.14:5432/ORODELTI_PR"
+ENGINE_URL = "postgresql+psycopg2://postgres:4!oroDEV24@localhost:5432/ORODELTI_PR"
 
 engine = create_engine(ENGINE_URL, pool_pre_ping=True)
 SessionLocal = sessionmaker(bind=engine, expire_on_commit=False)
